@@ -49,8 +49,8 @@ local maList = Tools.list()
 <p>
 
 - Instanciation<br>
-  Instanciation avec la paramètre timeToWait, le timer commence a l'instanciation et durera timeToWait minutes,<br>
-  Instanciation avec les paramètres min, max, le timer commence a l'instanciation et durera pendant un temps aléatoire entre min et max minutes
+  >Instanciation avec la paramètre timeToWait, le timer commence a l'instanciation et durera timeToWait minutes,<br>
+  >ou avec les paramètres min, max, le timer commence a l'instanciation et durera pendant un temps aléatoire entre min et max minutes
 ```lua
 local timer = Tools.timer({ timeToWait = 5 })
 local timer = Tools.timer({ min = 1, max = 5 })
