@@ -48,7 +48,7 @@ local maList = Tools.list()
 <details><summary>Timer</summary>
 <p>
 
-- Instanciation
+- Instanciation<br>
   Instanciation avec la paramètre timeToWait, le timer commence a l'instanciation et durera timeToWait minutes,
   Instanciation avec les paramètres min, max, le timer commence a l'instanciation et durera pendant un temps aléatoire entre min et max minutes,
 ```lua
