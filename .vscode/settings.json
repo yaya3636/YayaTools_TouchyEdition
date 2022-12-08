@@ -1,0 +1,30 @@
+{
+    "Lua.diagnostics.globals": [
+        "map",
+        "global",
+        "inventory",
+        "npc",
+        "developer",
+        "character",
+        "json",
+        "job",
+        "treasure",
+        "exchange",
+        "mount",
+        "craft",
+        "sale",
+        "chat",
+        "ankabotController",
+        "account",
+        "fightBasic",
+        "fightAction",
+        "fightChallenge",
+        "fightCharacter",
+        "fightDebug",
+        "d2data",
+        "lfs"
+    ],
+    "Lua.workspace.library": [
+        "${3rd}/lfs/library"
+    ]
+}
