@@ -13,7 +13,8 @@
 
 <details><summary>Tools</summary>
 <p>
- - Instanciation
+
+- Instanciation
 ```lua
 Tools = require("YayaTools_TouchyEdition.Modules.Tools")()
 ```
