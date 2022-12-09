@@ -1,20 +1,22 @@
+local directory = string.sub(package.cpath, 1, string.find(package.cpath, ";") - 6) .. [[YayaTools_TouchyEdition\RocksModules\dll\?.dll]]
+package.cpath = package.cpath .. ";" .. directory
+
 Tools = require("YayaTools_TouchyEdition.Modules.Tools")()
+Terminal = Tools.terminal({ serverPort = 36, clientPort = 37 })
 
+Terminal:Send("essayer la commande ( printTouchy Hello from Yaya Terminal ) depuis le terminal")
 function move()
-	local lst = Tools.list()
-	lst:pushl("a")
-	lst:pushl("21")
-	lst:pushl("874")
-	lst:pushl("4")
-	lst:pushl("a")
-	lst:pushl("dg")
-
-	global:printMessage(Tools.dump(lst:range(2, 4)))
-	local timer1 = Tools.timer({ timeToWait = 0 })
-	local timer2 = Tools.timer({ timeToWait = 1 })
-	global:printMessage(timer1:IsFinish())
-	global:printMessage(timer2:IsFinish())
-	global:delay(1000 * 60)
-	global:printMessage(timer2:IsFinish())
-
+    while true do
+		global:delay(1000)
+		local data, msg = Terminal.udp:receive()
+		if data then
+			local cmd = string.sub(data, 1, (string.find(data, " ") or 1) - 1)
+			local cmdValue = string.sub(data, string.find(data, " ") + 1, #data)
+			if cmd == "printTerminal" then
+				Terminal:Send(cmdValue)
+			elseif cmd == "printTouchy" then
+				global:printMessage(cmdValue)
+			end
+		end
+	end
 end

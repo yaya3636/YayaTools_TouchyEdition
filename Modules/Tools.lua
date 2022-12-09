@@ -1,3 +1,6 @@
+local directory = string.sub(package.cpath, 1, string.find(package.cpath, ";") - 6)
+package.cpath = package.cpath .. ";" .. directory .. [[YayaTools_TouchyEdition\RocksModules\dll\?.dll]]
+
 local rocksModuleDirectory <const> = "YayaTools_TouchyEdition.RocksModules."
 local moduleDirectory <const> = "YayaTools_TouchyEdition.Modules."
 
@@ -7,6 +10,8 @@ local tools = class("Tools")
 tools.dump = require(rocksModuleDirectory .. "dump")
 tools.list = class("List", require(moduleDirectory .. "List"))
 tools.timer = class("Timer", require(moduleDirectory .. "Timer"))
+tools.terminal = class("Terminal", require(moduleDirectory .. "RemoteTerminal"))
+
 
 function tools.timer:init(params)
     params = params or {}
@@ -19,5 +24,57 @@ function tools.timer:init(params)
         global:printMessage("Erreur aucun paramètre spécifier n'a été trouvé, { min, max, timeToWait }")
     end
 end
+
+function tools.terminal:init(params)
+    self.ip = "127.0.0.1"
+    self.serverPort = params.serverPort
+    self.clientPort = params.clientPort
+
+    self.socket = require(rocksModuleDirectory .. "socket")
+    self.udp = self.socket.udp()
+    self.udp:settimeout(0.001)
+    self.udp:setsockname(self.ip, self.clientPort)
+    self.udp:setpeername(self.ip, self.serverPort)
+    local ip, port = self.udp:getsockname()
+
+    self.clientIp = ip
+
+    local f = io.open(directory .. [[YayaTools_TouchyEdition\Modules\iupInterface\RemoteTerminal.lua]], "r")
+    local lines = {}
+    if f then
+        for line in f:lines() do
+            table.insert(lines, line)
+        end
+        f:close()
+    end
+
+    lines[1] = "local clientIp, clientPort = " .. [["]] .. self.clientIp .. [["]] .. ", " .. self.clientPort
+    lines[2] = "local serverPort = " .. self.serverPort
+    lines[3] = "local directory = [[" .. directory .. "YayaTools_TouchyEdition" .. "]]"
+    local newF = io.open(directory .. [[YayaTools_TouchyEdition\Modules\iupInterface\TmpRemoteTerminal.lua]], "w")
+
+    if newF then
+        for i, line in ipairs(lines) do
+            local l = line
+
+            if i ~= #lines then
+                l = line .. "\n"
+            end
+            newF:write(l)
+        end
+        newF:close()
+    end
+
+    os.remove(directory .. [[YayaTools_TouchyEdition\Modules\iupInterface\RemoteTerminal.lua]])
+    os.rename(directory .. [[YayaTools_TouchyEdition\Modules\iupInterface\TmpRemoteTerminal.lua]], directory .. [[YayaTools_TouchyEdition\Modules\iupInterface\RemoteTerminal.lua]])
+    --global:printMessage(tools.dump(lines))
+    io.popen("start " .. directory .. [[YayaTools_TouchyEdition\RocksModules\dll\iupLua\wLua54.exe ]]
+    .. directory .. [[YayaTools_TouchyEdition\Modules\iupInterface\RemoteTerminal.lua"]]
+    )
+    global:delay(1000)
+    self.udp:send("Connected !")
+end
+
+
 
 return tools

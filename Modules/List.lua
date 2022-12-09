@@ -189,4 +189,12 @@ function _M:walk(seq)
     end
 end
 
+function _M:enumerate()
+    local tbl = {}
+    for k, v in self:walk() do
+        tbl[k] = v
+    end
+    return tbl
+end
+
 return _M
