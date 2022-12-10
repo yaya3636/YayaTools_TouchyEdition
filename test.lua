@@ -5,6 +5,7 @@ Terminal = Tools.terminal({ serverPort = 36, clientPort = 37 })
 Terminal:Send("essayer la commande ( printTouchy Hello from Yaya Terminal ) depuis le terminal")
 
 Terminal:AddSavedCmd("printTouchy") -- Ctrl+Fleche droite ou bas dans le terminal pour avoir la commande rapide
+Terminal:AddSavedCmd("execute modifyX") -- Ctrl+Fleche droite ou bas dans le terminal pour avoir la commande rapide
 
 local x = "x"
 
