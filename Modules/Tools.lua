@@ -12,6 +12,7 @@ tools.list = class("List", require(moduleDirectory .. "List"))
 tools.timer = class("Timer", require(moduleDirectory .. "Timer"))
 tools.terminal = class("Terminal", require(moduleDirectory .. "RemoteTerminal"))
 tools.dictionnary = class("Dictionnary", require(moduleDirectory .. "Dictionnary"))
+tools.api = class("Api", require(moduleDirectory .. "Api"))
 tools.utils = require(moduleDirectory .. "Utils")
 
 function tools.dictionnary:init(dic)
