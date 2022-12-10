@@ -9,7 +9,6 @@ require ("iuplua")
 local iup = iup
 local socket = require "socket"
 local udp = socket.udp()
-local data, msg_or_ip, port_or_nil
 
 udp:settimeout(0.001)
 udp:setsockname(clientIp, serverPort)
@@ -18,9 +17,17 @@ Console = {}
 
 Console.udp = udp
 
+Console.savedCmd_index = 0
+
+Console.savedCmd = {
+    "execute",
+    "printTerminal"
+}
+
 Console.prompt = iup.text {
     expand="Horizontal",
-    dragdrop = "Yes"
+    dragdrop = "Yes",
+    multiline = "No"
 }
 
 Console.output = iup.text {
@@ -41,8 +48,10 @@ Console.prompt.tip =
 "Ctrl+Del - clears the output\n"..
 "Ctrl+O - selects a file and execute it\n"..
 "Ctrl+X - exits the Console\n"..
-"Up Arrow - shows the previous command in history\n"..
-"Down Arrow - shows the next command in history"
+"Right Arrow - shows the next command in history\n"..
+"Down Arrow - shows the previous command in history\n"..
+"Ctrl+Right Arrow - shows the next command in saved cmd\n"..
+"Ctrl+Down Arrow - shows the previous command in saved cmd"
 
 Console.orig_output = io.output
 Console.orig_write = io.write
@@ -51,12 +60,24 @@ Console.orig_print = print
 -- Listenning
 
 function Console.loop:action_cb()
-    data, msg_or_ip, port_or_nil = Console.udp:receive()
+    local data, msg_or_ip, port_or_nil = Console.udp:receive()
     if data then
-        print("Received :", data, msg_or_ip, port_or_nil)
+        print("Received :", "Data: " .. data .. " | IP: " .. clientIp .. " | Port: " .. serverPort)
+        Console.parsedata(data)
     end
     self.run = "YES" -- Restart Loop
 end
+
+function Console.parsedata(data)
+    local cmd = string.sub(data, 1, (string.find(data, " ") or 2) - 1)
+    local cmdValue = string.sub(data, (string.find(data, " ") or 0 ) + 1, #data)
+
+    if string.lower(cmd) == "addsavedcommand" then
+        print("SavedCmd :", cmdValue)
+        table.insert(Console.savedCmd, cmdValue)
+    end
+end
+
 
 function io.output(filename)
   Console.orig_output(filename)
@@ -160,6 +181,27 @@ function  Console.next_command()
   Console.prompt.value = Console.cmd_list[Console.cmd_index]
 end
 
+function Console.prev_saved_command()
+    if Console.savedCmd_index == 0 then
+        Console.savedCmd_index = #(Console.savedCmd)
+    else
+        Console.savedCmd_index = Console.savedCmd_index - 1
+        if (Console.savedCmd_index == 0) then
+            Console.savedCmd_index = 1
+        end
+    end
+    Console.prompt.value = Console.savedCmd[Console.savedCmd_index]
+end
+
+function Console.next_saved_command()
+    Console.savedCmd_index = Console.savedCmd_index + 1
+    local n = #(Console.savedCmd)
+    if (Console.savedCmd_index == n+1) then
+      Console.savedCmd_index = n
+    end
+  Console.prompt.value = Console.savedCmd[Console.savedCmd_index]
+end
+
 function Console.do_string(cmd)
   Console.print_command(cmd)
   --assert(loadstring(cmd))()
@@ -167,7 +209,8 @@ end
 
 function Console.prompt:k_any(key)
   if (key == iup.K_CR) then  -- Enter executes the string
-    Console.do_string("Sended: " .. self.value .. " | IP: " .. clientIp .. " Port: " .. clientPort)
+    Console.add_command(self.value)
+    print("Sended   :", "CMD: " .. self.value .. " | IP: " .. clientIp .. " | Port: " .. clientPort)
     Console.udp:send(self.value)
     self.value = ""
   end
@@ -180,11 +223,21 @@ function Console.prompt:k_any(key)
   if (key == iup.K_cDEL) then  -- Ctrl+Del clears Console.output
     Console.output.value = ""
   end
-  if (key == iup.K_UP) then  -- Up Arrow - shows the previous command in history
-    Console.prev_command()
-  end
-  if (key == iup.K_DOWN) then  -- Down Arrow - shows the next command in history
+  if (key == iup.K_RIGHT) then  -- Right Arrow - shows the next command in history
     Console.next_command()
+    Console.prompt.caretpos = Console.prompt.count + 1
+  end
+  if (key == iup.K_DOWN) then  -- Down Arrow - shows the previous command in history
+    Console.prev_command()
+    Console.prompt.caretpos = Console.prompt.count + 1
+  end
+  if (key == iup.K_cRIGHT) then  -- Ctrl+Right Arrow - shows the next command in savedCmd
+    Console.next_saved_command()
+    Console.prompt.caretpos = Console.prompt.count + 1
+  end
+  if (key == iup.K_cDOWN) then  -- Ctrl+Down Arrow - shows the previous command in savedCmd
+    Console.prev_saved_command()
+    Console.prompt.caretpos = Console.prompt.count + 1
   end
 end
 
@@ -206,7 +259,7 @@ Console.dialog = iup.dialog {
         gap = "5",
     },
     title="Yaya Terminal V1.0",
-    size="350x250", -- initial size
+    size="650x250", -- initial size
     icon=0, -- use the Lua icon from the executable in Windows
 }
 
@@ -231,6 +284,7 @@ function Console.version_info()
   local gtk = iup.GetGlobal("GTKVERSION")
   if (gtk) then print("GTK Version: ", gtk) end
   print("TouchyTerminal by Yaya Version: 1.0")
+  
 end
 
 Console.dialog:show()
